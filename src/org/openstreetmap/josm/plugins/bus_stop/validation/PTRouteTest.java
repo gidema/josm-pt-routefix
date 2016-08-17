@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.data.osm.OsmPrimitive;
@@ -21,12 +22,14 @@ import org.openstreetmap.josm.plugins.bus_stop.Platform;
 import org.openstreetmap.josm.plugins.bus_stop.Route;
 import org.openstreetmap.josm.plugins.bus_stop.RouteFactory;
 import org.openstreetmap.josm.plugins.bus_stop.RouteMember;
+import org.openstreetmap.josm.plugins.bus_stop.Stop;
 import org.openstreetmap.josm.plugins.bus_stop.StopPosition;
 import org.openstreetmap.josm.plugins.bus_stop.issues.Issue;
 import org.openstreetmap.josm.plugins.bus_stop.validation.errors.MissingPlatformTags;
 import org.openstreetmap.josm.plugins.bus_stop.validation.errors.MissingStopPositionTags;
 import org.openstreetmap.josm.plugins.bus_stop.validation.errors.PlatformWithoutRoute;
 import org.openstreetmap.josm.plugins.bus_stop.validation.errors.PlatformWithoutStopPosition;
+import org.openstreetmap.josm.plugins.bus_stop.validation.errors.RouteWithMissingStopPosition;
 import org.openstreetmap.josm.plugins.bus_stop.validation.errors.StopPositionWithoutRoute;
 
 public class PTRouteTest extends Test {
@@ -148,11 +151,15 @@ public class PTRouteTest extends Test {
                 errors.add(error);
             }
             else {
-                for (Route route : platform.getRelatedRoutes()) {
-//                    if (!stop.getStopPosition().getRelatedRoutes().contains(route)) {
-//                        TestError error = new RouteWithMissingStopPosition(this, route, stop);
-//                        errors.add(error);
-//                    }
+                Set<Stop> stops = platform.getStops();
+                if (stops.size() == 1) {
+                    Stop stop = stops.iterator().next();
+                    for (Route route : platform.getRelatedRoutes()) {
+                        if (!stop.getStopPosition().getRelatedRoutes().contains(route)) {
+                            TestError error = new RouteWithMissingStopPosition(this, route, stop);
+                            errors.add(error);
+                        }
+                    }
                 }
             }
         }
